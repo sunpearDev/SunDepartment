@@ -43,6 +43,7 @@ const OpenModal = (props) => {
   })
   const showContent = () => {
     var inputs
+    var initialValues
     switch (props.manage) {
       case 'account':
         inputs = [
@@ -163,42 +164,48 @@ const OpenModal = (props) => {
         ]
         break
       case 'order':
-        inputs = [
-          {
-            label: "Thời gian lưu trú",
-            name: "lenghtOfStay",
-            type: "rangepicker",
-            rules: [{ required: true, message: 'Xin nhập thời gian lưu trú!' }]
-          },
-          {
-            label: "Số người lớn",
-            name: "adults",
-            type: 'number',
-            rules: [{ required: true, message: 'Xin nhập số người lớn!' }],
-            min: 1,
-            defaultValue: 1,
-            max: 10
-          },
-          {
-            label: "Số trẻ em",
-            name: "childrens",
-            type: 'number',
-            rules: [{ required: true, message: 'Xin nhập số trẻ em!' }],
-            min: 0,
-            defaultValue: 0,
-            max: 10
-          },
-          {
-            label: "Yêu cầu đặc biệt",
-            name: "customer_required",
-            type: "textarea",
-            rows: 4
-          }
+        inputs = [{
+          label: 'ID khách hàng',
+          name: 'customer_ID',
+          defaultValue: props.customer,
+          type: 'disable'
+        },
+        {
+          label: "Thời gian lưu trú",
+          name: "lenghtOfStay",
+          type: "rangepicker",
+          rules: [{ required: true, message: 'Xin nhập thời gian lưu trú!' }]
+        },
+        {
+          label: "Số người lớn",
+          name: "adults",
+          type: 'number',
+          rules: [{ required: true, message: 'Xin nhập số người lớn!' }],
+          min: 1,
+          defaultValue: 1,
+          max: 10
+        },
+        {
+          label: "Số trẻ em",
+          name: "childrens",
+          type: 'number',
+          rules: [{ required: true, message: 'Xin nhập số trẻ em!' }],
+          min: 0,
+          defaultValue: 0,
+          max: 10
+        },
+        {
+          label: "Yêu cầu đặc biệt",
+          name: "customer_required",
+          type: "textarea",
+          rows: 4
+        }
         ]
-       
+        initialValues = { customer_ID: props.customer, adults: 1, childrens: 0 }
         if (Array.isArray(props.categorys)) {
           props.categorys.forEach(item => {
-           inputs.push({
+            initialValues[item.key] = 0
+            inputs.push({
               label: item.value,
               name: item.key,
               type: 'number',
@@ -208,12 +215,70 @@ const OpenModal = (props) => {
             })
           })
         }
+
+        break
+      case 'service':
+        inputs = [
+          {
+            label: "Tên dịch vụ",
+            name: "service_name",
+            type: 'normal',
+            rules: [{ required: true, message: 'Xin nhập tên dịch vụ!' }]
+          },
+          {
+            label: "Tên nhân viên",
+            name: "account_ID",
+            type: "select",
+            values: props.categorys,
+            rules: [{ required: true, message: 'Xin nhập chọn nhân viên!' }],
+          },
+          {
+            label: 'Mô tả',
+            name: 'description',
+            type: 'normal',
+          }, {
+            label: 'Giá một ngày',
+            name: 'price',
+            type: 'normal',
+            rules: [
+              { required: true, message: 'Xin nhập giá dịch vụ!' },
+              { min: 4, message: 'Xin nhập ít nhập 1000 VNĐ' }
+            ]
+          }
+        ]
+        break
+      case 'server_detail':
+        inputs = [{
+          label: 'ID chi tiết đơn',
+          name: 'order_detail_ID',
+          defaultValue: props.order_detail,
+          type: 'disable'
+        },
+        {
+          label: "Loại dịch vụ",
+          name: "room_category_ID",
+          type: "select",
+          values: props.categorys,
+          rules: [{ required: true, message: 'Xin nhập chọn loại dịch vụ!' }],
+        },
+        {
+          label: 'Số lượng',
+          name: 'quantity',
+          type: 'normal',
+          rules: [
+            { required: true, message: 'Xin nhập số lượng!' },
+          ],
+          min: 1,
+          defaultValue: 0,
+        }
+        ]
         break
       default:
 
     }
 
-    return <CustomForm manage={props.manage} inputs={inputs} finished={receiveFinished} action={props.action === undefined ? "add" : props.action} />
+
+    return <CustomForm manage={props.manage} inputs={inputs} finished={receiveFinished} action={props.action === undefined ? "add" : props.action} initialValues={initialValues} />
   }
 
 

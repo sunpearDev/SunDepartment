@@ -22,6 +22,8 @@ const RoomCategory = require('./routers/room_category');
 const Room = require('./routers/room');
 const Order = require('./routers/order')
 const OrderDetail = require('./routers/order_detail')
+const Service = require('./routers/service')
+const ServiceDetail = require('./routers/service_detail')
 app.use('/account', Account)
 app.use('/customer', Customer)
 app.use('/account_category', AccountCategory)
@@ -29,6 +31,8 @@ app.use('/room_category', RoomCategory)
 app.use('/room', Room)
 app.use('/order', Order)
 app.use('/order_detail', OrderDetail)
+app.use('/service', Service)
+app.use('/service_detail',ServiceDetail)
 
 
 

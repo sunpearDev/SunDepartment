@@ -118,6 +118,7 @@ export default class EditableTable extends React.Component {
         this.defineColumn = this.defineColumn.bind(this);
         this.saveSelect = this.saveSelect.bind(this)
         this.receiveFinished = this.receiveFinished.bind(this)
+        this.action = this.action.bind(this)
         this.state = {
             columns: [],
             dataSource: [],
@@ -225,7 +226,7 @@ export default class EditableTable extends React.Component {
                         dataIndex: 'booking',
                         render: (_, record) => {
 
-                            return (<OpenModal title="Đặt phòng" manage='order' categorys={this.props.categorys} finished={this.receiveFinished} data={record} />)
+                            return (<OpenModal title="Đặt phòng" manage='order' customer={record.customer_ID} categorys={this.props.categorys} finished={this.receiveFinished} data={record} />)
                         }
                     },
                     this.props.accountCategory === 'letan' ?
@@ -321,6 +322,7 @@ export default class EditableTable extends React.Component {
                                     }}>
                                         <Option value={'disable'}>Disable</Option>
                                         <Option value={'empty'}>Empty</Option>
+                                        <Option value={'booked'}>Booked</Option>
                                         <Option value={'using'}>Using</Option>
                                     </Select>
                                 )
@@ -428,19 +430,34 @@ export default class EditableTable extends React.Component {
                         title: 'Check',
                         dataIndex: 'check',
                         render: (_, record) => {
-
-                            return <Button onClick={this.action('check_in', {order_detail_ID:record.order_detail_ID,check_in:new Date()})}>{record.check_in === null ? 'Check in' : record.check_out === null ? 'Check out' : 'Error'}</Button>
+                            if (record.state !== 'paid')
+                                return <Button onClick={() => this.action(`/order_detail/${record.check_in === null ? 'check_in' : record.check_out === null ? 'check_out' : 'confirm_pay'}/${record.order_detail_ID}`, null)}>{record.check_in === null ? 'Check in' : record.check_out === null ? 'Check out' : 'Xác nhận thanh toán'}</Button>
+                            else return 'Tất toán'
 
                         }
                     },
                     {
-                        title: 'Gía 1 ngày',
-                        dataIndex: 'price_on_day'
+                        title: 'Tình trạng',
+                        dataIndex: 'state_order',
+                        render: (_, record) => {
+                            if (record.check_in === null) return 'Chưa check in'
+                            else if (record.check_out === null) return 'Đang thuê'
+                            else if (record.state === 'prepare') return `Cần thanh toán ${record.total_pays} VNĐ`
+                            else return 'Đã thanh toán'
+                        }
                     },
                     {
                         title: 'Yêu cầu đặc biệt',
                         dataIndex: 'customer_required',
                         editable: true
+                    },
+                    {
+                        title: 'Thêm dịch vụ',
+                        dataIndex: 'service',
+                        render: (_, record) => {
+
+                            return (<OpenModal title="Thêm dịch vụ" manage='service_detail' order_detail={record.order_detail_ID} categorys={this.props.categorys} finished={this.receiveFinished} data={record} />)
+                        }
                     }
                         /* {
                              title: 'Xoá',
@@ -456,21 +473,143 @@ export default class EditableTable extends React.Component {
                     ]
                 })
                 break
+            case 'service':
+                this.setState({
+                    columns: [{
+                        title: 'Tên dịch vụ',
+                        dataIndex: 'service_name',
+                        editable: this.props.accountCategory === "letan" ? false : true,
+                    },
+                    this.props.accountCategory === 'dichvu' ? undefined :
+                        {
+                            title: 'Tên nhân viên',
+                            dataIndex: 'username',
+
+                            render: (_, record) => {
+                                return this.props.accountCategory === 'admin' ? (
+                                    <Select defaultValue={record.account_ID} onChange={(values) => {
+                                        record.account_ID = values
+                                        this.saveSelect(record)
+                                    }} >
+                                        {
+                                            Array.isArray(this.props.categorys) ? this.props.categorys.map(item =>
+                                                <Option value={item.key}>{item.value}</Option>
+                                            ) : ''
+                                        }
+                                    </Select >
+                                ) : record.username
+                            }
+                        },
+                    {
+                        title: 'Mô tả',
+                        dataIndex: 'description',
+                        editable: this.props.accountCategory === "letan" ? false : true,
+                    },
+
+                    {
+                        title: 'Tình trạng',
+                        dataIndex: 'state',
+                        render: (_, record) => {
+                            if (this.props.accountCategory !== 'letan')
+                                return (
+                                    <Select defaultValue={record.state} onChange={(values) => {
+                                        record.state = values
+                                        this.saveSelect(record)
+                                    }}>
+                                        <Option value={'disabled'}>Bị vô hiệu</Option>
+                                        <Option value={'fixing'}>Đang sửa</Option>
+                                        <Option value={'sold_out'}>Hết hàng</Option>
+                                        <Option value={'available'}>Vẫn còn</Option>
+                                    </Select>
+                                )
+                            else return record.state
+                        }
+                    },
+                    {
+                        title: 'Giá ',
+                        dataIndex: 'price_on_day',
+                        editable: this.props.accountCategory === "admin" ? true : false,
+                        render: (_, record) => (record.price + ' VNĐ')
+                    },
+                    this.props.accountCategory === 'admin' ?
+                        {
+                            title: 'Xoá',
+                            dataIndex: 'delete',
+                            render: (_, record) =>
+                                this.state.dataSource.length >= 1 ? (
+                                    <Popconfirm title="Bạn có muốn xoá?" onConfirm={() => this.handleDelete(record.service_ID)}>
+                                        <a>Xoá</a>
+                                    </Popconfirm>
+                                ) : null,
+                        } : undefined,
+                    ]
+                })
+                break
+            case 'service_detail':
+                this.setState({
+                    columns: [{
+                        title: 'Mã Loại dịch vụ',
+                        dataIndex: 'service_ID',
+                        render: (_, record) => {
+                            return this.props.accountCategory !== 'letan' ? (
+                                <Select defaultValue={record.account_ID} onChange={(values) => {
+                                    record.service_ID = values
+                                    this.saveSelect(record)
+                                }} >
+                                    {
+                                        Array.isArray(this.props.categorys) ? this.props.categorys.map(item =>
+                                            <Option value={item.key}>{item.value}</Option>
+                                        ) : ''
+                                    }
+                                </Select >
+                            ) : record.service_ID
+                        }
+                    },
+                    {
+                        title: 'Mã dịch vụ',
+                        dataIndex: 'service_detail_ID'
+                    },
+                    {
+                        title: 'Mã chi tiết đơn',
+                        dataIndex: 'order_detail_ID'
+                    },
+                    {
+                        title: 'Số lượng',
+                        dataIndex: 'quantity'
+                    },
+                    {
+                        title: 'Giá',
+                        dataIndex: 'price'
+                    },
+                    {
+                        title: 'Tổng công',
+                        dataIndex: 'total_pay'
+                    },
+                    {
+                        title: 'Xoá',
+                        dataIndex: 'delete',
+                        render: (_, record) => {
+                            return (this.state.dataSource.length >= 1 ? (
+                                <Popconfirm title="Bạn có muốn xoá?" onConfirm={() => this.handleDelete(record.service_detail_ID)}>
+                                    <a>Xoá</a>
+                                </Popconfirm>
+                            ) : undefined)
+                        },
+                    },
+                    ]
+                })
+                break
             default:
         }
-
-
-
-
     }
     receiveFinished(value) {
-        console.log(value)
         if (value !== undefined) {
             this.handleGet()
         }
     }
-    action(type, value) {
-        this.props.action(type, value)
+    action(path, value) {
+        console.log(path, value)
+        this.props.action(path, value)
     }
 
 
@@ -550,7 +689,7 @@ export default class EditableTable extends React.Component {
     handleSave = async (values) => {
         let id = values[Object.keys(values)[0]]
         delete values[Object.keys(values)[0]]
-        console.log(values)
+        console.log(id)
         axios.put(`${host}:5000/${this.props.manage}/${id}`, { jwt: cookies.load('jwt'), data: values }).then(response => {
             if (response.data.status) {
                 message.success("Cập nhật thành công")

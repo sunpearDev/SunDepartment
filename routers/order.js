@@ -38,7 +38,84 @@ router.post('/', async (req, res) => {
     let valid = await handleFactory.validUser(req.body.jwt)
     let category = valid.account_category
     if (category === 'kinhdoanh' || category === 'letan' || category == "admin") {
-       res.json(req.body)
+        connect.beginTransaction(async err => {
+            if (err) {
+                connect.commit();
+                res.json({ status: false, message: err })
+            }
+            else {
+                let order = {
+                    order_ID: uniqid.time(),
+                    account_ID: await handleFactory.getAccountID(req.body.jwt),
+                    customer_ID: req.body.customer_ID,
+                    begin_stay_date: req.body.lenghtOfStay[0].split('T')[0],
+                    end_stay_date: req.body.lenghtOfStay[1].split('T')[0],
+                    adults: req.body.adults,
+                    childrens: req.body.childrens,
+                    state: 'pending',
+                    customers_required: req.body.customers_required
+                }
+                handleFactory.createOne(Order, order).then(result => {
+                    handleFactory.getAll(RoomCategory).then(async result => {
+                        let order_room_category = []
+                        await result.map(item => {
+                            if (req.body[item.room_category_ID] !== undefined && item.available > req.body[item.room_category_ID]) {
+                                order_room_category.push({ [item.room_category_ID]: req.body[item.room_category_ID], available: item.available, price_on_day: item.price_on_day })
+                            }
+                        })
+                        if (order_room_category.length === 0) {
+                            connect.rollback()
+                            res.json({ status: false, message: 'Không thể không đặt gì cả' })
+                        }
+                        else {
+
+                            await order_room_category.map(async item => {
+                                let key = Object.keys(item)[0]
+
+                                for (let i = item.available; i > (item.available - item[key]); i--) {
+                                    let order_detail = {
+                                        order_ID: order.order_ID,
+                                        order_detail_ID: uniqid.time(),
+                                        room_number: i,
+                                        room_category_ID: key,
+                                        price_on_day: item.price_on_day
+                                    }
+                                    await handleFactory.createOne(OrderDetail, order_detail).then(result => {
+                                        handleFactory.updateOne(Room, { room_number: i, room_category_ID: key }, { state: 'booked' }).then(result => {
+
+                                        }).catch(err => {
+
+                                            connect.rollback()
+                                            res.json({ status: false, message: err.sqlMessage })
+                                        })
+                                    }).catch(err => {
+                                        connect.rollback()
+                                        res.json({ status: false, message: err.sqlMessage })
+                                    })
+                                }
+
+                                await handleFactory.updateOne(RoomCategory, { room_category_ID: key }, { available: item.available - item[key] }).then(result => {
+
+                                }).catch(err => {
+                                    connect.rollback()
+                                    res.json({ status: false, message: err.sqlMessage })
+                                })
+                            })
+                            connect.commit()
+                            res.json({ status: true })
+                        }
+                    }).catch(err => {
+                        connect.rollback()
+                        res.json({ status: false, message: err.sqlMessage })
+                    })
+
+                }).catch(err => {
+                    connect.rollback()
+                    res.json({ status: false, message: err.sqlMessage })
+                })
+            }
+
+        })
     }
 })
 router.put('/:id', async (req, res) => {

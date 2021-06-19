@@ -20,6 +20,13 @@ const decodeToken = async (token) => {
         return undefined
     }
 }
+exports.getCurrentDate = () => {
+    let today = new Date();
+    let date = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`
+    let time = `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`
+    let datetime = date + ' ' + time
+    return datetime
+}
 
 exports.query = (sql) => {
     return new Promise((resolve, reject) => {

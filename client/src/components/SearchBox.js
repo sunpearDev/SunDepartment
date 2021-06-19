@@ -9,6 +9,7 @@ const { Search } = Input;
 
 const SearchBox = (props) => {
   const [value, setValue] = useState(undefined)
+ 
   const onChange = (e) => {
     let temp
     if (e.nativeEvent.inputType === "deleteContentBackward") {
@@ -20,9 +21,9 @@ const SearchBox = (props) => {
       setValue(temp)
     }
   }
-  useEffect(async ()=>{
-    await setValue('')
-    setValue(undefined)
+  useEffect(async () => {
+   
+    
   })
   const onSearch = value => {
     setValue(console.log(value))
@@ -49,11 +50,12 @@ const SearchBox = (props) => {
 
       <Col span={24}>
         <Search
-          value={value}
+         
           placeholder="input search text"
           allowClear
           enterButton="Search"
           size="large"
+        
           onSearch={onSearch}
         />
       </Col>

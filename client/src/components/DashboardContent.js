@@ -19,14 +19,17 @@ const DashboardContent = (props) => {
     const receiveSearchResult = (value) => {
         setSearchResults(value)
     }
-    const receiveAction=(type,value) => {
-        if(type!==undefined&&value!==undefined)
-        axios.post(`${host}:5000/${props.manage}/${type}`,{jwt:cookies.load('jwt'),order_detail_ID:value}).then(response =>
-            {
+    const receiveAction = (path, value) => {
+        if (path !== undefined && value !== undefined) {
+            axios.put(`${host}:5000${path}`, { jwt: cookies.load('jwt') }).then(async response => {
+                console.log(response)
                 if (response.data.status) {
-
-                }
+                    setFinished(true)
+                    await setTimeout(() => { setFinished(false) }, 1000)
+                } else message.error(response.data.message)
             })
+        }
+
     }
 
     useEffect(() => {
@@ -61,6 +64,28 @@ const DashboardContent = (props) => {
                             let temp = []
                             response.data.list.map(item => {
                                 temp.push({ key: item.customer_ID, value: item.customer_name })
+                            })
+                            setCategory(temp)
+                        } else message.error(response.data.message)
+                    })
+                    break
+                case 'service':
+                    axios.post(host + ':5000/account/find', { jwt: cookies.load('jwt') , findText:'dichvu'}).then(response => {
+                        if (response.data.status) {
+                            let temp = []
+                            response.data.list.map(item => {
+                                temp.push({ key: item.account_ID, value: item.username })
+                            })
+                            setCategory(temp)
+                        } else message.error(response.data.message)
+                    })
+                    break
+                    case 'service_detail':
+                    axios.post(host + ':5000/service/getAll', { jwt: cookies.load('jwt')}).then(response => {
+                        if (response.data.status) {
+                            let temp = []
+                            response.data.list.map(item => {
+                                temp.push({ key: item.service_ID, value: item.service_name })
                             })
                             setCategory(temp)
                         } else message.error(response.data.message)
@@ -132,9 +157,31 @@ const DashboardContent = (props) => {
                     </Col>
                 </Row>)
                 break
+            case 'service':
+                result.push(<Row>
+                    <Col span={8}>
+                        {
+                            props.category === 'admin' ? <Modal title="Thêm dịch vụ" categorys={categorys} manage={props.menu} finished={receiveFinished} /> : ''
+                        }
+                    </Col>
+                    <Col span={8} offset={8}>
+                        <SearchBox manage={props.menu} autoFocus searchResult={receiveSearchResult} />
+                    </Col>
+                </Row>)
+                break
+                case 'service_detail':
+                    result.push(<Row>
+                        <Col span={8}>
+
+                        </Col>
+                        <Col span={8} offset={8}>
+                            <SearchBox manage={props.menu} autoFocus searchResult={receiveSearchResult} />
+                        </Col>
+                    </Row>)
+                    break
             default:
         }
-        result.push(<EditAbleTable categorys={categorys} manage={props.menu} accountCategory={props.category} finished={finished} search={searchResults} action={receiveAction}/>)
+        result.push(<EditAbleTable categorys={categorys} manage={props.menu} accountCategory={props.category} finished={finished} search={searchResults} action={receiveAction} />)
         return result
     }
     else return ''

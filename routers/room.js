@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
         handleFactory.getBy(Room, { room_category_ID: req.body.room_category_ID })
             .then(result => {
                 let room = {
-                    room_number: result.length > 0 ? result[0].room_number + 1 : 1,
+                    room_number: result.length > 0 ? result[result.length - 1].room_number + 1 : 1,
                     room_category_ID: req.body.room_category_ID,
                     state: 'empty'
                 }
