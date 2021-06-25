@@ -86,7 +86,17 @@ router.post('/find', async (req, res) => {
             email: req.body.findText,
             state: req.body.findText,
             category_ID: req.body.findText
-        }, 'or', false).then(result => res.json({ status: true, list: result }))
+        }, 'or', false).then(result => res.json({ status: true, list: result.filter(item => item.state !== 'admin') }))
+            .catch(err => {
+                res.json({ status: false, message: err.sqlMessage })
+            })
+    }
+})
+router.post('/detail', async (req, res) => {
+    let valid = await handleFactory.validUser(req.body.jwt)
+    let category = valid.account_category
+    if (category === 'admin' || category === 'nhansu') {
+        handleFactory.getBy(Account, { account_ID: req.body.value }).then(result => res.json({ status: true, list: result }))
             .catch(err => {
                 res.json({ status: false, message: err.sqlMessage })
             })

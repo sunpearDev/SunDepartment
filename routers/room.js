@@ -69,6 +69,16 @@ router.post('/', async (req, res) => {
 
     }
 })
+router.post('/find', async (req, res) => {
+    let valid = await handleFactory.validUser(req.body.jwt)
+    let category = valid.account_category
+    if (category === 'kinhdoanh' || category === 'admin') {
+        handleFactory.getBy(Room, { room_category_ID: req.body.findText }).then(result => res.json({ status: true, list: result }))
+            .catch(err => {
+                res.json({ status: false, message: err.sqlMessage })
+            })
+    }
+})
 router.put('/:id', async (req, res) => {
     let valid = await handleFactory.validUser(req.body.jwt)
     let category = valid.account_category

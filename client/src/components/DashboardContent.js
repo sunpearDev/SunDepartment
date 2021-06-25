@@ -12,6 +12,7 @@ const DashboardContent = (props) => {
     const [categorys, setCategory] = useState([])
     const [finished, setFinished] = useState(false)
     const [searchResults, setSearchResults] = useState(undefined)
+    const [transition, setTransition] = useState(undefined)
     const receiveFinished = async (value) => {
         setFinished(value)
         if (value) await setTimeout(() => { setFinished(false) }, 1000)
@@ -28,6 +29,13 @@ const DashboardContent = (props) => {
                     await setTimeout(() => { setFinished(false) }, 1000)
                 } else message.error(response.data.message)
             })
+        }
+
+    }
+    const receiveTransition = async (transit) => {
+        if (transit !== undefined) {
+            setTransition(transit)
+            await setTimeout(() => { setTransition(undefined) }, 2000)
         }
 
     }
@@ -70,7 +78,7 @@ const DashboardContent = (props) => {
                     })
                     break
                 case 'service':
-                    axios.post(host + ':5000/account/find', { jwt: cookies.load('jwt') , findText:'dichvu'}).then(response => {
+                    axios.post(host + ':5000/account/find', { jwt: cookies.load('jwt'), findText: 'dichvu' }).then(response => {
                         if (response.data.status) {
                             let temp = []
                             response.data.list.map(item => {
@@ -80,14 +88,21 @@ const DashboardContent = (props) => {
                         } else message.error(response.data.message)
                     })
                     break
-                    case 'service_detail':
-                    axios.post(host + ':5000/service/getAll', { jwt: cookies.load('jwt')}).then(response => {
+                case 'order_detail':
+                case 'service_detail':
+                    axios.post(host + ':5000/service/getAll', { jwt: cookies.load('jwt') }).then(response => {
                         if (response.data.status) {
                             let temp = []
                             response.data.list.map(item => {
-                                temp.push({ key: item.service_ID, value: item.service_name })
+                                if (props.menu === 'order_detail') {
+                                    if (item.state === 'availabled')
+                                        temp.push({ key: item.service_ID, value: item.service_name })
+                                }
+                                else
+                                    temp.push({ key: item.service_ID, value: item.service_name })
                             })
                             setCategory(temp)
+
                         } else message.error(response.data.message)
                     })
                     break
@@ -104,7 +119,7 @@ const DashboardContent = (props) => {
                         <Modal title="Thêm tài khoản" manage={props.menu} categorys={categorys} finished={receiveFinished} />
                     </Col>
                     <Col span={8} offset={8}>
-                        <SearchBox manage={props.menu} autoFocus searchResult={receiveSearchResult} />
+                        <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />
                     </Col>
                 </Row>)
                 break
@@ -114,7 +129,7 @@ const DashboardContent = (props) => {
                         <Modal title="Thêm khách hàng" manage={props.menu} finished={receiveFinished} />
                     </Col>
                     <Col span={8} offset={8}>
-                        <SearchBox manage={props.menu} autoFocus searchResult={receiveSearchResult} />
+                        <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />
                     </Col>
                 </Row>)
                 break
@@ -125,17 +140,17 @@ const DashboardContent = (props) => {
                             <Modal title="Thêm loại phòng" manage={props.menu} finished={receiveFinished} />
                         </Col>
                         <Col span={8} offset={8}>
-                            <SearchBox manage={props.menu} autoFocus searchResult={receiveSearchResult} />
+                            <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />
                         </Col>
                     </Row>)
                 break
             case 'room':
                 result.push(<Row>
                     <Col span={8}>
-                        <Modal title="Thêm phòng" manage={props.menu} categorys={categorys} finished={receiveFinished} />
+                        <Modal title="Thêm phòng" manage={props.menu} transition={transition} categorys={categorys} finished={receiveFinished} />
                     </Col>
                     <Col span={8} offset={8}>
-                        <SearchBox manage={props.menu} autoFocus searchResult={receiveSearchResult} />
+                        <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />
                     </Col>
                 </Row>)
                 break
@@ -144,7 +159,7 @@ const DashboardContent = (props) => {
                     <Col span={8}>
                     </Col>
                     <Col span={8} offset={8}>
-                        <SearchBox manage={props.menu} autoFocus searchResult={receiveSearchResult} />
+                        <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />
                     </Col>
                 </Row>)
                 break
@@ -153,7 +168,7 @@ const DashboardContent = (props) => {
                     <Col span={8}>
                     </Col>
                     <Col span={8} offset={8}>
-                        <SearchBox manage={props.menu} autoFocus searchResult={receiveSearchResult} />
+                        <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />
                     </Col>
                 </Row>)
                 break
@@ -165,23 +180,23 @@ const DashboardContent = (props) => {
                         }
                     </Col>
                     <Col span={8} offset={8}>
-                        <SearchBox manage={props.menu} autoFocus searchResult={receiveSearchResult} />
+                        <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />
                     </Col>
                 </Row>)
                 break
-                case 'service_detail':
-                    result.push(<Row>
-                        <Col span={8}>
+            case 'service_detail':
+                result.push(<Row>
+                    <Col span={8}>
 
-                        </Col>
-                        <Col span={8} offset={8}>
-                            <SearchBox manage={props.menu} autoFocus searchResult={receiveSearchResult} />
-                        </Col>
-                    </Row>)
-                    break
+                    </Col>
+                    <Col span={8} offset={8}>
+                        <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />
+                    </Col>
+                </Row>)
+                break
             default:
         }
-        result.push(<EditAbleTable categorys={categorys} manage={props.menu} accountCategory={props.category} finished={finished} search={searchResults} action={receiveAction} />)
+        result.push(<EditAbleTable categorys={categorys} manage={props.menu} accountCategory={props.category} finished={finished} search={searchResults} action={receiveAction} transition={receiveTransition} />)
         return result
     }
     else return ''

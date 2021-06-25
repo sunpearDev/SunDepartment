@@ -93,21 +93,20 @@ const DashboardSider = (props) => {
 
     return (
         <div>
-            <Button type="primary" onClick={toggleCollapsed} style={{ marginBottom: 16 }}>
-                {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined)}
-            </Button>
+
             <Menu
                 defaultSelectedKeys={[defaultMenu]}
-                defaultOpenKeys={['sub1']}
+                defaultOpenKeys={[defaultMenu]}
                 mode="inline"
                 theme="dark"
                 onClick={handleClick}
-                inlineCollapsed={collapsed}
             >
-                {menus.map(menu =>
-                    <Menu.Item key={menu.key} icon={menu.icon}>
-                        {menu.text}
-                    </Menu.Item>
+                {menus.map(menu => {
+                    return (
+                        <Menu.Item key={menu.key} className={menu.key + '-menu'} icon={menu.icon}>
+                            {menu.text}
+                        </Menu.Item>)
+                }
                 )}
             </Menu>
         </div>

@@ -21,6 +21,7 @@ router.post('/find', async (req, res) => {
     let category = valid.account_category
     if (category === 'kinhdoanh' || category === 'admin') {
         handleFactory.getBy(RoomCategory, {
+            room_category_ID: req.body.findText,
             room_category_name: req.body.findText,
             single_bed: req.body.findText,
             double_bed: req.body.findText,
@@ -33,6 +34,17 @@ router.post('/find', async (req, res) => {
             })
     }
 })
+router.post('/detail', async (req, res) => {
+    let valid = await handleFactory.validUser(req.body.jwt)
+    let category = valid.account_category
+    if (category === 'kinhdoanh' || category === 'admin') {
+        handleFactory.getBy(RoomCategory, { room_category_ID: req.body.value }).then(result => res.json({ status: true, list: result }))
+            .catch(err => {
+                res.json({ status: false, message: err.sqlMessage })
+            })
+    }
+})
+
 router.post('/', async (req, res) => {
     let valid = await handleFactory.validUser(req.body.jwt)
     let category = valid.account_category

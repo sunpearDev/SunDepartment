@@ -199,6 +199,7 @@ router.post('/find', async (req, res) => {
             price_on_day: req.body.findText,
             customer_required: req.body.findText
         }, 'or', false).then(async data => {
+            var list = []
             for (let i = 0; i < data.length; i++) {
                 let item = data[i]
                 await handleFactory.getBy(RoomCategory, { room_category_ID: data[i].room_category_ID }).then((result) => {
@@ -209,15 +210,27 @@ router.post('/find', async (req, res) => {
                         room_category_name: result[0].room_category_name,
                         check_in: item.check_in,
                         check_out: item.check_out,
+                        state:item.state,
                         price_on_day: item.price_on_day,
                         customer_required: item.customer_required,
+                        total_pays: item.total_pays,
                     })
                 }).catch(err => {
                     res.json({ status: false, message: err.sqlMessage })
                 })
             }
-            res.json({ status: true, list: result })
+            res.json({ status: true, list: list })
         })
+            .catch(err => {
+                res.json({ status: false, message: err.sqlMessage })
+            })
+    }
+})
+router.post('/detail', async (req, res) => {
+    let valid = await handleFactory.validUser(req.body.jwt)
+    let category = valid.account_category
+    if (category === 'letan' || category === 'admin') {
+        handleFactory.getBy(OrderDetail, { order_ID: req.body.value }).then(result => res.json({ status: true, list: result }))
             .catch(err => {
                 res.json({ status: false, message: err.sqlMessage })
             })
@@ -228,7 +241,39 @@ router.delete('/:id/:jwt', async (req, res) => {
     let valid = await handleFactory.validUser(req.params.jwt)
     let category = valid.account_category
     if (category === 'admin') {
+        connect.beginTransaction(async err => {
+            if (err) {
+                connect.commit();
+                res.json({ status: false, message: err })
+            }
+            else {
 
+                handleFactory.deleteBy(OrderDetail, { order_detail_ID: req.params.id })
+                    .then(result => {
+                        handleFactory. handleFactory.deleteBy(ServiceDetail, { order_detail_ID: result[0].order_detail_ID }).then((result) =>{
+
+                        }).catch(err => {
+                            connect.rollback()
+                            res.json({ status: false, message: err.sqlMessage })
+                        })
+                        handleFactory.getBy(OrderDetail, { order_detail_ID: req.params.id }).then(result => {
+                            handleFactory.updateOne(Room, { room_number: result[0].room_number, room_category_ID: result[0].room_category_ID }).then(result => {
+                                connect.commit()
+                                res.json({ status: true })
+                            }).catch(err => {
+                                connect.rollback()
+                                res.json({ status: false, message: err.sqlMessage })
+                            })
+                        }).catch(err => {
+                            connect.rollback()
+                            res.json({ status: false, message: err.sqlMessage })
+                        })
+                    }).catch(err => {
+                        connect.rollback()
+                        res.json({ status: false, message: err.sqlMessage })
+                    })
+            }
+        })
     }
 })
 

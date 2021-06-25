@@ -237,7 +237,7 @@ const OpenModal = (props) => {
             name: 'description',
             type: 'normal',
           }, {
-            label: 'Giá một ngày',
+            label: 'Giá dịch vụ',
             name: 'price',
             type: 'normal',
             rules: [
@@ -247,7 +247,8 @@ const OpenModal = (props) => {
           }
         ]
         break
-      case 'server_detail':
+      case 'service_detail':
+        initialValues = { order_detail_ID: props.order_detail, quantity: 1 }
         inputs = [{
           label: 'ID chi tiết đơn',
           name: 'order_detail_ID',
@@ -256,7 +257,7 @@ const OpenModal = (props) => {
         },
         {
           label: "Loại dịch vụ",
-          name: "room_category_ID",
+          name: "service_ID",
           type: "select",
           values: props.categorys,
           rules: [{ required: true, message: 'Xin nhập chọn loại dịch vụ!' }],
@@ -269,7 +270,7 @@ const OpenModal = (props) => {
             { required: true, message: 'Xin nhập số lượng!' },
           ],
           min: 1,
-          defaultValue: 0,
+          defaultValue: 1,
         }
         ]
         break

@@ -19,6 +19,21 @@ const EditableRow = ({ index, ...props }) => {
     );
 };
 
+const Link = (props) => {
+    const transitive = async () => {
+
+        props.component.props.transition({ manage: props.manage, value: props.value })
+    }
+    return (<a onClick={transitive}>{props.text === undefined ? props.value : props.text}</a>)
+}
+const DetailButton = (props) => {
+    const transitive = async () => {
+        console.log(props.manage)
+        props.component.props.transition({ manage: props.manage, value: props.value })
+    }
+    return (<Button onClick={transitive}>{props.text === undefined ? props.value : props.text}</Button>)
+}
+
 const EditableCell = ({
     title,
     editable,
@@ -288,8 +303,13 @@ export default class EditableTable extends React.Component {
                         editable: this.props.accountCategory === "letan" ? false : true,
                         render: (_, record) => (record.price_on_day + ' VNĐ')
                     },
+                    {
+                        title: 'Chi tiết',
+                        dataIndex: 'detail',
+                        render: (_, record) => (<Link component={this} manage='room' value={record.room_category_name} text='Chi tiết' />)
+                    },
                     this.props.accountCategory === 'letan' ?
-                        {}
+                        undefined
                         : ({
                             title: 'Xoá',
                             dataIndex: 'delete',
@@ -330,6 +350,11 @@ export default class EditableTable extends React.Component {
                         }
                     },
                     {
+                        title: 'Chi tiết',
+                        dataIndex: 'detail',
+                        render: (_, record) => (<Link component={this} manage='room_category' value={record.room_category_name} text='Chi tiết' />)
+                    },
+                    {
                         title: 'Xoá',
                         dataIndex: 'delete',
                         render: (_, record) => {
@@ -357,12 +382,13 @@ export default class EditableTable extends React.Component {
                     columns: [{
                         title: 'ID đơn đặt',
                         dataIndex: 'order_ID',
+                        render: (_, record) => <Link component={this} manage='order_detail' value={record.order_ID} />
                     },
                     {
                         title: 'Tên khách đặt',
                         dataIndex: 'customer_name',
 
-                        render: (_, record) => {
+                        /*render: (_, record) => {
                             return (
                                 <Select defaultValue={record.customer_ID} onChange={(values) => {
                                     record.customer_ID = values
@@ -375,11 +401,12 @@ export default class EditableTable extends React.Component {
                                     }
                                 </Select >
                             )
-                        }
+                        }*/
                     },
                     {
                         title: 'Nhân viên đặt',
                         dataIndex: 'username',
+                        render: (_, record) => (<Link component={this} manage='account' value={record.account_ID} />)
                     },
                     {
                         title: 'Số người lớn',
@@ -416,6 +443,7 @@ export default class EditableTable extends React.Component {
                     columns: [{
                         title: 'ID đơn đặt',
                         dataIndex: 'order_ID',
+                        render: (_, record) => <Link component={this} manage='order' value={record.order_ID} />
                     },
                     {
                         title: 'ID chi tiết',
@@ -455,27 +483,31 @@ export default class EditableTable extends React.Component {
                         title: 'Thêm dịch vụ',
                         dataIndex: 'service',
                         render: (_, record) => {
-
-                            return (<OpenModal title="Thêm dịch vụ" manage='service_detail' order_detail={record.order_detail_ID} categorys={this.props.categorys} finished={this.receiveFinished} data={record} />)
+                            if (record.state !== 'prepare')
+                                return (<OpenModal title="Thêm dịch vụ" manage='service_detail' order_detail={record.order_detail_ID} categorys={this.props.categorys} finished={this.receiveFinished} data={record} />)
                         }
-                    }
-                        /* {
-                             title: 'Xoá',
-                             dataIndex: 'delete',
-                             render: (_, record) => {
-                                 return (this.state.dataSource.length >= 1 ?
-                                     <Popconfirm title="Bạn có muốn xoá?" onConfirm={() => this.handleDelete(record.order_ID)}>
-                                         <a>Xoá</a>
-                                     </Popconfirm>
-                                     : null)
-                             },
-                         },*/
+                    },
+                    this.props.accountCategory === 'admin' ? {
+                        title: 'Xoá',
+                        dataIndex: 'delete',
+                        render: (_, record) => {
+                            return (this.state.dataSource.length >= 1 ?
+                                <Popconfirm title="Bạn có muốn xoá?" onConfirm={() => this.handleDelete(record.order_detail_ID)}>
+                                    <a>Xoá</a>
+                                </Popconfirm>
+                                : null)
+                        },
+                    } : undefined,
                     ]
                 })
                 break
             case 'service':
                 this.setState({
                     columns: [{
+                        title: 'Mã dịch vụ',
+                        dataIndex: 'service_ID',
+                        render: (_, record) => <Link component={this} manage='service_detail' value={record.service_ID} />
+                    }, {
                         title: 'Tên dịch vụ',
                         dataIndex: 'service_name',
                         editable: this.props.accountCategory === "letan" ? false : true,
@@ -547,55 +579,59 @@ export default class EditableTable extends React.Component {
                 break
             case 'service_detail':
                 this.setState({
-                    columns: [{
-                        title: 'Mã Loại dịch vụ',
-                        dataIndex: 'service_ID',
-                        render: (_, record) => {
-                            return this.props.accountCategory !== 'letan' ? (
-                                <Select defaultValue={record.account_ID} onChange={(values) => {
-                                    record.service_ID = values
-                                    this.saveSelect(record)
-                                }} >
-                                    {
-                                        Array.isArray(this.props.categorys) ? this.props.categorys.map(item =>
-                                            <Option value={item.key}>{item.value}</Option>
-                                        ) : ''
-                                    }
-                                </Select >
-                            ) : record.service_ID
-                        }
-                    },
-                    {
-                        title: 'Mã dịch vụ',
-                        dataIndex: 'service_detail_ID'
-                    },
-                    {
-                        title: 'Mã chi tiết đơn',
-                        dataIndex: 'order_detail_ID'
-                    },
-                    {
-                        title: 'Số lượng',
-                        dataIndex: 'quantity'
-                    },
-                    {
-                        title: 'Giá',
-                        dataIndex: 'price'
-                    },
-                    {
-                        title: 'Tổng công',
-                        dataIndex: 'total_pay'
-                    },
-                    {
-                        title: 'Xoá',
-                        dataIndex: 'delete',
-                        render: (_, record) => {
-                            return (this.state.dataSource.length >= 1 ? (
-                                <Popconfirm title="Bạn có muốn xoá?" onConfirm={() => this.handleDelete(record.service_detail_ID)}>
-                                    <a>Xoá</a>
-                                </Popconfirm>
-                            ) : undefined)
+                    columns: [
+                        {
+                            title: 'Mã chi tiết dịch vụ',
+                            dataIndex: 'service_detail_ID',
                         },
-                    },
+                        {
+                            title: 'Loại dịch vụ',
+                            dataIndex: 'service_ID',
+                            render: (_, record) => {
+                                return this.props.accountCategory === 'admin' ? (
+                                    <Select defaultValue={record.service_ID} onChange={(values) => {
+                                        record.service_ID = values
+                                        this.saveSelect(record)
+                                    }} >
+                                        {
+                                            Array.isArray(this.props.categorys) ? this.props.categorys.map(item =>
+                                                <Option value={item.key}>{item.value}</Option>
+                                            ) : ''
+                                        }
+                                    </Select >
+                                ) : record.service_ID
+                            }
+                        },
+                        {
+                            title: 'Mã chi tiết đơn',
+                            dataIndex: 'order_detail_ID',
+                            render: (_, record) => <Link component={this} manage='order_detail' value={record.order_detail_ID} />
+                        },
+                        {
+                            title: 'Số lượng',
+                            dataIndex: 'quantity'
+                        },
+                        {
+                            title: 'Giá',
+                            dataIndex: 'price',
+                            render: (_, record) => record.price + ' VNĐ'
+                        },
+                        {
+                            title: 'Tổng công',
+                            dataIndex: 'total_pay',
+                            render: (_, record) => record.total_pay + ' VNĐ'
+                        },
+                        {
+                            title: 'Xoá',
+                            dataIndex: 'delete',
+                            render: (_, record) => {
+                                return (this.state.dataSource.length >= 1 ? (
+                                    <Popconfirm title="Bạn có muốn xoá?" onConfirm={() => this.handleDelete(record.service_detail_ID)}>
+                                        <a>Xoá</a>
+                                    </Popconfirm>
+                                ) : undefined)
+                            },
+                        },
                     ]
                 })
                 break
@@ -618,7 +654,7 @@ export default class EditableTable extends React.Component {
         if (response.data.status) {
             message.success("Tải danh sách thành công.")
             let data = response.data.list
-            console.log(data)
+
             this.setState({
                 dataSource: data
             })

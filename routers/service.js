@@ -48,6 +48,16 @@ router.post('/find', async (req, res) => {
             })
     }
 })
+router.post('/detail', async (req, res) => {
+    let valid = await handleFactory.validUser(req.body.jwt)
+    let category = valid.account_category
+    if (category === 'kinhdoanh' || category === 'admin') {
+        handleFactory.getBy(Service, { service_ID: req.body.value }).then(result => res.json({ status: true, list: result }))
+            .catch(err => {
+                res.json({ status: false, message: err.sqlMessage })
+            })
+    }
+})
 
 router.post('/', async (req, res) => {
     let valid = await handleFactory.validUser(req.body.jwt)
