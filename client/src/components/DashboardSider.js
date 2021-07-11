@@ -9,7 +9,8 @@ import {
     InsertRowBelowOutlined,
     ShopOutlined,
     AuditOutlined,
-    ShoppingCartOutlined
+    ShoppingCartOutlined,
+    PicRightOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import cookies from 'react-cookies'
@@ -78,12 +79,24 @@ const DashboardSider = (props) => {
                 tempMenu.push({ key: "order_detail", icon: <ShopOutlined />, text: 'Quản lý chi tiết đơn đặt' })
                 tempMenu.push({ key: "service", icon: <AuditOutlined />, text: 'Quản lý dịch vụ' })
                 tempMenu.push({ key: "service_detail", icon: <AuditOutlined />, text: 'Quản lý chi tiết dịch vụ' })
+                tempMenu.push({ key: "supply_category", icon: <PicRightOutlined />, text: 'Quản lý loại tài sản' })
+                tempMenu.push({ key: "room_supply", icon: <PicRightOutlined />, text: 'Quản lý tài sản phòng' })
+                tempMenu.push({ key: "department_supply", icon: <PicRightOutlined />, text: 'Quản lý tài sản khách sạn' })
                 setDefaultMenu('account')
                 break
             case 'dichvu':
                 tempMenu.push({ key: "service", icon: <AuditOutlined />, text: 'Quản lý dịch vụ' })
                 tempMenu.push({ key: "service_detail", icon: <AuditOutlined />, text: 'Quản lý chi tiết dịch vụ' })
+
                 break
+            case 'ketoan':
+                tempMenu.push({ key: "supply_category", icon: <PicRightOutlined />, text: 'Quản lý loại tài sản' })
+                tempMenu.push({ key: "room_supply", icon: <PicRightOutlined />, text: 'Quản lý tài sản phòng' })
+                tempMenu.push({ key: "department_supply", icon: <PicRightOutlined />, text: 'Quản lý tài sản khách sạn' })
+                break
+            case 'kithuat':
+                tempMenu.push({ key: "room_supply", icon: <PicRightOutlined />, text: 'Quản lý tài sản phòng' })
+                tempMenu.push({ key: "department_supply", icon: <PicRightOutlined />, text: 'Quản lý tài sản khách sạn' })
             default:
 
         }

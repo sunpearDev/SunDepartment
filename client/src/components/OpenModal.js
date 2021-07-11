@@ -152,7 +152,6 @@ const OpenModal = (props) => {
         ]
         break
       case 'room':
-
         inputs = [
           {
             label: "Loại phòng",
@@ -273,6 +272,61 @@ const OpenModal = (props) => {
           defaultValue: 1,
         }
         ]
+        break
+      case 'supply_category':
+        inputs = [{
+          label: 'Tên loại tài sản',
+          name: 'supply_category_name',
+          type: 'normal',
+          rules: [
+            { required: true, message: 'Xin nhập tên loại tài sản!' },
+          ],
+        }, {
+          label: "Loại sở hữu",
+          name: "supply_type",
+          type: "select",
+          values: [
+            { key: "room", value: "Phòng" },
+            { key: "department", value: "Khách sạn" },
+          ],
+          rules: [{ required: true, message: 'Xin nhập loại sở hữu!' }],
+        }]
+        break
+      case 'room_supply':
+
+        inputs = [{
+          label: 'Tên tài sản',
+          name: 'supply_name',
+          type: 'normal',
+        },
+        {
+          label: "Chọn phòng",
+          name: "room_code",
+          type: "select",
+          values: props.categorys[0],
+          rules: [{ required: true, message: 'Xin nhập phòng!' }],
+        },
+        {
+          label: "Loại tài sản",
+          name: "supply_category_ID",
+          type: "select",
+          values: props.categorys[1],
+          rules: [{ required: true, message: 'Xin nhập loại sở hữu!' }],
+        }]
+        break
+      case 'department_supply':
+        inputs = [{
+          label: 'Tên tài sản',
+          name: 'supply_name',
+          type: 'normal',
+        },
+        {
+          label: "Loại tài sản",
+          name: "supply_category_ID",
+          type: "select",
+          values: props.categorys,
+          rules: [{ required: true, message: 'Xin nhập loại sở hữu!' }],
+        }]
         break
       default:
 

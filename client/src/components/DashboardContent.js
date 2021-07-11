@@ -20,15 +20,26 @@ const DashboardContent = (props) => {
     const receiveSearchResult = (value) => {
         setSearchResults(value)
     }
-    const receiveAction = (path, value) => {
-        if (path !== undefined && value !== undefined) {
-            axios.put(`${host}:5000${path}`, { jwt: cookies.load('jwt') }).then(async response => {
-                console.log(response)
-                if (response.data.status) {
-                    setFinished(true)
-                    await setTimeout(() => { setFinished(false) }, 1000)
-                } else message.error(response.data.message)
-            })
+    const receiveAction = (data) => {
+        if (data.path !== undefined) {
+            if (data.action === undefined)
+                axios.put(`${host}:5000${data.path}`, { jwt: cookies.load('jwt') }).then(async response => {
+                    if (response.data.status) {
+                        setFinished(true)
+                        await setTimeout(() => { setFinished(false) }, 1000)
+                    } else message.error(response.data.message)
+                })
+            else if (data.action === 'post') {
+                axios.post(`${host}:5000${data.path}`, { amount: data.value }).then(async response => {
+                    if (response.data.status) {
+                        setFinished(true)
+                        await setTimeout(() => { setFinished(false) }, 1000)
+                        if (data.path === '/payment') {
+                            window.location = response.data.order_url
+                        }
+                    } else message.error(response.data.message)
+                })
+            }
         }
 
     }
@@ -40,7 +51,7 @@ const DashboardContent = (props) => {
 
     }
 
-    useEffect(() => {
+    useEffect(async () => {
         if (cookies.load('jwt') !== undefined)
             switch (props.menu) {
                 case 'account':
@@ -105,6 +116,48 @@ const DashboardContent = (props) => {
 
                         } else message.error(response.data.message)
                     })
+                    break
+                case 'room_supply':
+                    if (props.category === 'ketoan');
+                    else {
+                        let doubleCategory = []
+                        axios.post(host + ':5000/room/getAll', { jwt: cookies.load('jwt') }).then(async response => {
+                            if (response.data.status) {
+                                let temp = []
+                                response.data.list.map(item => {
+                                    temp.push({ key: `${item.room_category_ID}.${item.room_number}`, value: `${item.room_category_name} ${item.room_number}` })
+                                })
+                                doubleCategory.push(temp)
+                                await axios.post(host + ':5000/supply_category/getAll', { jwt: cookies.load('jwt') }).then(response => {
+                                    if (response.data.status) {
+                                        let temp = []
+                                        response.data.list.map(item => {
+                                            if (item.supply_type === 'room')
+                                                temp.push({ key: item.supply_category_ID, value: item.supply_category_name })
+                                        })
+                                        doubleCategory.push(temp)
+
+                                    } else message.error(response.data.message)
+                                })
+                                setCategory(doubleCategory)
+                            } else message.error(response.data.message)
+                        })
+
+                    }
+
+                    break
+                case 'department_supply':
+                    axios.post(host + ':5000/supply_category/getAll', { jwt: cookies.load('jwt') }).then(response => {
+                        if (response.data.status) {
+                            let temp = []
+                            response.data.list.map(item => {
+                                if (item.supply_type === 'department')
+                                    temp.push({ key: item.supply_category_ID, value: item.supply_category_name })
+                            })
+                            setCategory(temp)
+                        } else message.error(response.data.message)
+                    })
+
                     break
                 default:
             }
@@ -188,6 +241,52 @@ const DashboardContent = (props) => {
                 result.push(<Row>
                     <Col span={8}>
 
+                    </Col>
+                    <Col span={8} offset={8}>
+                        <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />
+                    </Col>
+                </Row>)
+                break
+            case 'service_detail':
+                result.push(<Row>
+                    <Col span={8}>
+
+                    </Col>
+                    <Col span={8} offset={8}>
+                        <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />
+                    </Col>
+                </Row>)
+                break
+            case 'supply_category':
+                result.push(<Row>
+                    <Col span={8}>
+                        {
+                            props.category === 'admin' ? <Modal title="Thêm loại tài sản" manage={props.menu} finished={receiveFinished} /> : ''
+                        }
+                    </Col>
+                    <Col span={8} offset={8}>
+                        <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />
+                    </Col>
+                </Row>)
+                break
+            case 'room_supply':
+                result.push(<Row>
+                    <Col span={8}>
+                        {
+                            props.category === 'ketoan' ? '' : <Modal title="Thêm tài sản phòng" categorys={categorys} manage={props.menu} finished={receiveFinished} />
+                        }
+                    </Col>
+                    <Col span={8} offset={8}>
+                        <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />
+                    </Col>
+                </Row>)
+                break
+            case 'department_supply':
+                result.push(<Row>
+                    <Col span={8}>
+                        {
+                            props.category === 'admin' ? <Modal title="Thêm tài sản khách sạn" categorys={categorys} manage={props.menu} finished={receiveFinished} /> : ''
+                        }
                     </Col>
                     <Col span={8} offset={8}>
                         <SearchBox manage={props.menu} transition={transition} searchResult={receiveSearchResult} />

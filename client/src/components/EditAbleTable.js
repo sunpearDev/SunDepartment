@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import { Table, Input, Button, Popconfirm, Form, Select, message } from 'antd';
+import { Table, Input, Button, Popconfirm, Form, Select, Row, message } from 'antd';
 import Notiflix from "notiflix";
 import OpenModal from './OpenModal';
 import axios from 'axios'
@@ -458,10 +458,17 @@ export default class EditableTable extends React.Component {
                         title: 'Check',
                         dataIndex: 'check',
                         render: (_, record) => {
-                            if (record.state !== 'paid')
-                                return <Button onClick={() => this.action(`/order_detail/${record.check_in === null ? 'check_in' : record.check_out === null ? 'check_out' : 'confirm_pay'}/${record.order_detail_ID}`, null)}>{record.check_in === null ? 'Check in' : record.check_out === null ? 'Check out' : 'Xác nhận thanh toán'}</Button>
-                            else return 'Tất toán'
-
+                            if (record.state !== 'paid') {
+                                if (record.check_in === null)
+                                    return <Button onClick={() => this.action({ path: `/order_detail/check_in/${record.order_detail_ID}` })} >Check in</Button>
+                                else if (record.check_in === null)
+                                    return <Button onClick={() => this.action({ path:`/order_detail/check_out/${record.order_detail_ID}` })} >Check out</Button>
+                                else return (<>
+                                    <Row><Button onClick={() => this.action({ path: `/order_detail/confirm_pay/${record.order_detail_ID}` })} >Tiền mặt {record.total_pays} VNĐ</Button></Row>
+                                    <Row><Button onClick={() => this.action({ path: '/payment', value: record.total_pays, action: 'post' })}>Zalo Pay</Button></Row>
+                                </>)
+                            }
+                            return 'Tất toán'
                         }
                     },
                     {
@@ -635,6 +642,146 @@ export default class EditableTable extends React.Component {
                     ]
                 })
                 break
+            case 'supply_category':
+                this.setState({
+                    columns: [{
+                        title: 'Tên loại dịch vụ',
+                        dataIndex: 'supply_category_name',
+                        editable: this.props.accountCategory === "admin" ? true : false,
+                    },
+                    {
+                        title: 'Loại sỡ hữu',
+                        dataIndex: 'supply_type',
+                        render: (_, record) => {
+                            if (this.props.accountCategory === 'admin')
+                                return (
+                                    <Select defaultValue={record.supply_type} onChange={(values) => {
+                                        record.supply_type = values
+                                        this.saveSelect(record)
+                                    }}>
+                                        <Option value={'room'}>Phòng</Option>
+                                        <Option value={'department'}>Khách sạn</Option>
+                                    </Select>
+                                )
+                            else return record.state
+                        }
+                    },
+
+                    this.props.accountCategory === 'admin' ?
+                        ({
+                            title: 'Xoá',
+                            dataIndex: 'delete',
+                            render: (_, record) =>
+                                this.state.dataSource.length >= 1 ? (
+                                    <Popconfirm title="Bạn có muốn xoá?" onConfirm={() => this.handleDelete(record.supply_category_ID)}>
+                                        <a>Xoá</a>
+                                    </Popconfirm>
+                                ) : null,
+                        }) : undefined,
+                    ]
+                })
+                break
+            case 'room_supply':
+                this.setState({
+                    columns: [
+                        {
+                            title: 'Tên tài sản',
+                            dataIndex: 'supply_name',
+                            editable: this.props.accountCategory === "ketoan" ? false : true,
+                        },
+                        {
+                            title: 'Thuộc về',
+                            dataIndex: 'room_code',
+                            render: (_, record) => this.props.accountCategory === 'admin' ?
+                                (<Select defaultValue={`${record.room_category_ID}.${record.room_number}`} onChange={(values) => {
+                                    record.room_code = values
+                                    this.saveSelect(record)
+                                }} >
+                                    {
+                                        Array.isArray(this.props.categorys[0]) ? this.props.categorys[0].map(item =>
+                                            <Option value={item.key}>{item.value}</Option>
+                                        ) : ''
+                                    }
+                                </Select >)
+                                : (`${record.room_category_name} ${record.room_number}`)
+                        },
+                        {
+                            title: 'Trạng thái',
+                            dataIndex: 'state',
+                            editable: this.props.accountCategory === "ketoan" ? false : true
+                        },
+                        this.props.accountCategory === 'kithuat' ? undefined :
+                            {
+                                title: 'Chi tiết loại',
+                                dataIndex: 'supply_category_ID',
+                                render: (_, record) => {
+                                    if (this.props.accountCategory === 'ketoan')
+                                        return (<Link component={this} manage='supply_category' value={record.supply_category_ID} />)
+                                    else if (this.props.accountCategory === 'admin') return (
+                                        <Select defaultValue={record.supply_category_ID} onChange={(values) => {
+                                            record.supply_category_ID = values
+                                            this.saveSelect(record)
+                                        }} >
+                                            {
+                                                this.props.categorys[1] !== undefined ? this.props.categorys[1].map(item =>
+                                                    <Option value={item.key}>{item.value}</Option>
+                                                ) : ''
+                                            }
+                                        </Select >
+                                    )
+                                }
+                            },
+                        this.props.accountCategory === 'admin' ?
+                            ({
+                                title: 'Xoá',
+                                dataIndex: 'delete',
+                                render: (_, record) =>
+                                    this.state.dataSource.length >= 1 ? (
+                                        <Popconfirm title="Bạn có muốn xoá?" onConfirm={() => this.handleDelete(record.supply_ID)}>
+                                            <a>Xoá</a>
+                                        </Popconfirm>
+                                    ) : null,
+                            }) : undefined,
+                    ]
+                })
+                break
+            case 'department_supply':
+                this.setState({
+                    columns: [
+                        {
+                            title: 'Tên tài sản',
+                            dataIndex: 'supply_name',
+                            editable: this.props.accountCategory === "ketoan" ? false : true
+                        },
+                        {
+                            title: 'Trạng thái',
+                            dataIndex: 'state',
+                            editable: this.props.accountCategory === "ketoan" ? false : true
+                        },
+                        this.props.accountCategory === 'kithuat' ? undefined :
+                            {
+                                title: 'Chi tiết loại',
+                                dataIndex: 'supply_category_ID',
+                                render: (_, record) => {
+
+                                    return (<Link component={this} manage='supply_category' value={record.supply_category_ID} text='Chi tiết' />)
+
+                                }
+                            },
+                        this.props.accountCategory === 'admin' ?
+                            ({
+                                title: 'Xoá',
+                                dataIndex: 'delete',
+                                render: (_, record) =>
+                                    this.state.dataSource.length >= 1 ? (
+                                        <Popconfirm title="Bạn có muốn xoá?" onConfirm={() => this.handleDelete(record.supply_ID)}>
+                                            <a>Xoá</a>
+                                        </Popconfirm>
+                                    ) : null,
+                            }) : undefined,
+                    ]
+                })
+                break
             default:
         }
     }
@@ -643,9 +790,9 @@ export default class EditableTable extends React.Component {
             this.handleGet()
         }
     }
-    action(path, value) {
-        console.log(path, value)
-        this.props.action(path, value)
+    action(data) {
+
+        this.props.action(data)
     }
 
 
@@ -725,7 +872,7 @@ export default class EditableTable extends React.Component {
     handleSave = async (values) => {
         let id = values[Object.keys(values)[0]]
         delete values[Object.keys(values)[0]]
-        console.log(id)
+
         axios.put(`${host}:5000/${this.props.manage}/${id}`, { jwt: cookies.load('jwt'), data: values }).then(response => {
             if (response.data.status) {
                 message.success("Cập nhật thành công")

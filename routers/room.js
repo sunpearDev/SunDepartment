@@ -9,7 +9,7 @@ const RoomCategory = 'room_category'
 router.post('/getAll', async (req, res) => {
     let valid = await handleFactory.validUser(req.body.jwt)
     let category = valid.account_category
-    if (category === 'kinhdoanh' || category === 'admin')
+    if (category === 'kinhdoanh' || category === 'admin' || category === 'kithuat')
         handleFactory.joinTables([Room, RoomCategory], { room_category_ID: undefined }).then((data) => {
             let result = []
             data.map(item => {

@@ -65,12 +65,13 @@ const CustomForm = (props) => {
         for (let i = 0; i < inputs.length; i++) {
             let input = inputs[i]
             let item
+            
             switch (input.type) {
                 case "select":
                     item = (<Select defaultValue={input.label}>
-                        {input.values.map((item =>
+                        { input.values.map((item =>
                             <Option value={item.key}>{item.value}</Option>
-                        ))}
+                        )) }
                     </Select>)
                     break
                 case "normal":
