@@ -27,7 +27,7 @@ const ServiceDetail = require('./routers/service_detail')
 const SupplyCategory = require('./routers/supply_category')
 const RoomSupply = require('./routers/room_supply')
 const DepartmentSupply = require('./routers/department_supply')
-const Payment=require('./routers/payment')
+const Payment = require('./routers/payment')
 app.use('/account', Account)
 app.use('/customer', Customer)
 app.use('/account_category', AccountCategory)
@@ -40,7 +40,15 @@ app.use('/service_detail', ServiceDetail)
 app.use('/supply_category', SupplyCategory)
 app.use('/room_supply', RoomSupply)
 app.use('/department_supply', DepartmentSupply)
-app.use('/payment',Payment)
+app.use('/payment', Payment)
+
+if (process.env.NODE_ENV == 'production') {
+  //set static frontend
+  app.use(express.static(path.join(__dirname, "client", "build")))
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+  });
+}
 
 
 app.listen(port, () => {
