@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import '../css/HomePage.css'
-const host = 'http://' + window.location.hostname
+const host = 'https://' + window.location.hostname
 
 export default class HomePage extends Component {
     render() {

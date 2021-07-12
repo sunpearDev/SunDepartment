@@ -23,14 +23,14 @@ const DashboardContent = (props) => {
     const receiveAction = (data) => {
         if (data.path !== undefined) {
             if (data.action === undefined)
-                axios.put(`${host}:5000${data.path}`, { jwt: cookies.load('jwt') }).then(async response => {
+                axios.put(`${host}${data.path}`, { jwt: cookies.load('jwt') }).then(async response => {
                     if (response.data.status) {
                         setFinished(true)
                         await setTimeout(() => { setFinished(false) }, 1000)
                     } else message.error(response.data.message)
                 })
             else if (data.action === 'post') {
-                axios.post(`${host}:5000${data.path}`, { amount: data.value }).then(async response => {
+                axios.post(`${host}${data.path}`, { amount: data.value }).then(async response => {
                     if (response.data.status) {
                         setFinished(true)
                         await setTimeout(() => { setFinished(false) }, 1000)
@@ -55,7 +55,7 @@ const DashboardContent = (props) => {
         if (cookies.load('jwt') !== undefined)
             switch (props.menu) {
                 case 'account':
-                    axios.post(host + ':5000/account_category', { jwt: cookies.load('jwt') }).then(response => {
+                    axios.post(host + '/account_category', { jwt: cookies.load('jwt') }).then(response => {
                         if (response.data.status) {
                             let temp = []
                             response.data.categorys.map(item => {
@@ -67,7 +67,7 @@ const DashboardContent = (props) => {
                     break
                 case 'customer':
                 case 'room':
-                    axios.post(host + ':5000/room_category/getAll', { jwt: cookies.load('jwt') }).then(response => {
+                    axios.post(host + '/room_category/getAll', { jwt: cookies.load('jwt') }).then(response => {
                         if (response.data.status) {
                             let temp = []
                             response.data.list.map(item => {
@@ -78,7 +78,7 @@ const DashboardContent = (props) => {
                     })
                     break
                 case 'order':
-                    axios.post(host + ':5000/customer/getAll', { jwt: cookies.load('jwt') }).then(response => {
+                    axios.post(host + '/customer/getAll', { jwt: cookies.load('jwt') }).then(response => {
                         if (response.data.status) {
                             let temp = []
                             response.data.list.map(item => {
@@ -89,7 +89,7 @@ const DashboardContent = (props) => {
                     })
                     break
                 case 'service':
-                    axios.post(host + ':5000/account/find', { jwt: cookies.load('jwt'), findText: 'dichvu' }).then(response => {
+                    axios.post(host + '/account/find', { jwt: cookies.load('jwt'), findText: 'dichvu' }).then(response => {
                         if (response.data.status) {
                             let temp = []
                             response.data.list.map(item => {
@@ -101,7 +101,7 @@ const DashboardContent = (props) => {
                     break
                 case 'order_detail':
                 case 'service_detail':
-                    axios.post(host + ':5000/service/getAll', { jwt: cookies.load('jwt') }).then(response => {
+                    axios.post(host + '/service/getAll', { jwt: cookies.load('jwt') }).then(response => {
                         if (response.data.status) {
                             let temp = []
                             response.data.list.map(item => {
@@ -121,14 +121,14 @@ const DashboardContent = (props) => {
                     if (props.category === 'ketoan');
                     else {
                         let doubleCategory = []
-                        axios.post(host + ':5000/room/getAll', { jwt: cookies.load('jwt') }).then(async response => {
+                        axios.post(host + '/room/getAll', { jwt: cookies.load('jwt') }).then(async response => {
                             if (response.data.status) {
                                 let temp = []
                                 response.data.list.map(item => {
                                     temp.push({ key: `${item.room_category_ID}.${item.room_number}`, value: `${item.room_category_name} ${item.room_number}` })
                                 })
                                 doubleCategory.push(temp)
-                                await axios.post(host + ':5000/supply_category/getAll', { jwt: cookies.load('jwt') }).then(response => {
+                                await axios.post(host + '/supply_category/getAll', { jwt: cookies.load('jwt') }).then(response => {
                                     if (response.data.status) {
                                         let temp = []
                                         response.data.list.map(item => {
@@ -147,7 +147,7 @@ const DashboardContent = (props) => {
 
                     break
                 case 'department_supply':
-                    axios.post(host + ':5000/supply_category/getAll', { jwt: cookies.load('jwt') }).then(response => {
+                    axios.post(host + '/supply_category/getAll', { jwt: cookies.load('jwt') }).then(response => {
                         if (response.data.status) {
                             let temp = []
                             response.data.list.map(item => {

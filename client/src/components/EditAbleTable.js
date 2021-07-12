@@ -4,7 +4,7 @@ import Notiflix from "notiflix";
 import OpenModal from './OpenModal';
 import axios from 'axios'
 import cookies from 'react-cookies'
-const host = 'http://' + window.location.hostname
+const host = 'https://' + window.location.hostname
 const { Option } = Select;
 const EditableContext = React.createContext(null);
 
@@ -826,7 +826,7 @@ export default class EditableTable extends React.Component {
     }
 
     handleDelete = (id) => {
-        axios.delete(`${host}:5000/${this.props.manage}/${id}/${cookies.load("jwt")}`).then(response => {
+        axios.delete(`${host}/${this.props.manage}/${id}/${cookies.load("jwt")}`).then(response => {
             if (response.data.status) {
                 message.success("Xoá thành công")
                 this.handleGet()
@@ -873,7 +873,7 @@ export default class EditableTable extends React.Component {
         let id = values[Object.keys(values)[0]]
         delete values[Object.keys(values)[0]]
 
-        axios.put(`${host}:5000/${this.props.manage}/${id}`, { jwt: cookies.load('jwt'), data: values }).then(response => {
+        axios.put(`${host}/${this.props.manage}/${id}`, { jwt: cookies.load('jwt'), data: values }).then(response => {
             if (response.data.status) {
                 message.success("Cập nhật thành công")
                 this.handleGet()

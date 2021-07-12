@@ -22,7 +22,7 @@ const CustomForm = (props) => {
         values.jwt = cookies.load('jwt')
 
         if (props.action === "add") {
-            axios.post(`${host}:5000/${props.manage}/`, values).then(response => {
+            axios.post(`${host}/${props.manage}/`, values).then(response => {
                 console.log(response)
                 if (response.data.status) {
                     message.success("Thêm thành công")
@@ -36,7 +36,7 @@ const CustomForm = (props) => {
             })
         }
         else if (props.action === "update") {
-            axios.put(`${host}:5000/${props.manage}/${props.id}`, values).then(response => {
+            axios.put(`${host}/${props.manage}/${props.id}`, values).then(response => {
                 if (response.data.status) {
                     message.success("Cập nhật thành công")
                     props.finished(true)

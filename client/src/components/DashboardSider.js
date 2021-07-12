@@ -37,7 +37,7 @@ const DashboardSider = (props) => {
     }
     useEffect(() => {
         if (menus.length === 0) {
-            axios.post(`${host}:5000/account/valid`, { jwt: cookies.load('jwt') }).then(response => {
+            axios.post(`${host}/account/valid`, { jwt: cookies.load('jwt') }).then(response => {
                 if (response.data.status) {
                     setAccountCategory(response.data.account_category)
                 } else message.error(response.data.message)

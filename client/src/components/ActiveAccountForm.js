@@ -21,7 +21,7 @@ export default class ActiveAccountForm extends Component {
         else if (values.newPassword !== values.newPasswordConfirm) {
             message.error("Mật khẩu xác nhận không khớp")
         } else {
-            axios.post(host + ':5000/account/login', values).then( async res => {
+            axios.post(host + '/account/login', values).then( async res => {
                 
                 if (res.data.status) {
                     console.log(res.data)
