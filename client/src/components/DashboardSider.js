@@ -15,7 +15,7 @@ import {
 import axios from 'axios';
 import cookies from 'react-cookies'
 import { useHistory } from "react-router-dom";
-const host = 'http://' + window.location.hostname
+const host = 'https://' + window.location.hostname
 
 
 const { SubMenu } = Menu;

@@ -14,7 +14,7 @@ const tailLayout = {
 export default class LoginForm extends Component {
     onFinish = (values) => {
         if (values.username != '' && values.password != '') {
-            const host = 'http://' + window.location.hostname
+            const host = 'https://' + window.location.hostname
             axios.post(host + ':5000/account/login', values).then(res => {
                 if (res.data.status) {
                     message.success("Login successful!")

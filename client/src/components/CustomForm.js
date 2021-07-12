@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Form, Input, Button, Select, DatePicker, InputNumber, message } from 'antd';
 import axios from 'axios';
 import cookies from 'react-cookies';
-const host = 'http://' + window.location.hostname
+const host = 'https://' + window.location.hostname
 const { Option } = Select;
 
 const layout = {

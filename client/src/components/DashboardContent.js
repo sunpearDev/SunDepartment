@@ -5,7 +5,7 @@ import Modal from './OpenModal';
 import SearchBox from './SearchBox'
 import axios from 'axios'
 import cookies from 'react-cookies'
-const host = 'http://' + window.location.hostname
+const host = 'https://' + window.location.hostname
 
 
 const DashboardContent = (props) => {

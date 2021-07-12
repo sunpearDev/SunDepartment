@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Form, Input, Button, Checkbox, message } from 'antd';
 import axios from 'axios'
 import cookies from 'react-cookies'
-const host = 'http://' + window.location.hostname
+const host = 'https://' + window.location.hostname
 
 const layout = {
     labelCol: { span: 8 },
