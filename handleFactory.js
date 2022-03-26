@@ -20,6 +20,10 @@ const decodeToken = async (token) => {
         return undefined
     }
 }
+const getByColumns=(columns) =>{
+    return columns === undefined ? "*" : columns.map((column, index) =>
+        (index === columns.length ? column : (column + ',')))
+}
 exports.getCurrentDate = () => {
     let today = new Date();
     let date = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`
@@ -55,14 +59,14 @@ exports.validUser = async (token) => {
         )
 }
 
-exports.getAll = (table) => {
+exports.getAll = (table, columns) => {
     return new Promise((resolve, reject) => {
-        connect.query('select * from ' + table, async (err, data) => {
-            if (err) {
-                reject(err);
-            }
-            resolve(data);
-        })
+        connect.query(`select ${getByColumns(columns)} from ` + table, async (err, data) => {
+                if (err) {
+                    reject(err);
+                }
+                resolve(data);
+            })
     })
 }
 
@@ -74,18 +78,18 @@ exports.getBy = (table, params, condition = 'and', correct = true) => {
 
     if (correct) {
         sql += `${keys[0]} = ` + standardDataType(params[keys[0]])
+        for (let i = 1; i < keys.length; i++) {
+            sql += ` ${condition} ${keys[i]}`
+            sql += ' = ' + standardDataType(params[keys[i]])
+        }
     } else {
         sql += `${keys[0]} like '%${params[keys[0]]}%'`
-    }
-
-    for (let i = 1; i < keys.length; i++) {
-        sql += ` ${condition} ${keys[i]}`
-        if (correct) {
-            sql += ' = ' + standardDataType(params[keys[i]])
-        } else {
+        for (let i = 1; i < keys.length; i++) {
+            sql += ` ${condition} ${keys[i]}`
             sql += ` like '%${params[keys[i]]}%'`
         }
     }
+
 
 
     return new Promise((resolve, reject) => {
@@ -97,27 +101,35 @@ exports.getBy = (table, params, condition = 'and', correct = true) => {
         })
     })
 }
-exports.joinTables = (tables, id) => {
-    let key = Object.keys(id)[0]
-    let sql = `select * from ${tables[0]} join ${tables[1]} on ${tables[0]}.${key}=${tables[1]}.${key}`
+exports.joinTables = (tables, ids, condition) => {
+    if (ids.length !== tables.length + 1)
+        return new Promise((resolve, reject) => {
+            reject("Number of id or table name not enough for join.");
+        })
+    else {
 
+        let sql = `select * from ${tables[0]} join `
 
-    for (let i = 2; i < tables.length; i += 2) {
-        sql += ` ${tables[i]} on ${tables[i - 1]}.${key}=${tables[i]}.${key}`
+        for (let i = 1; i < tables.length; i += 2) {
+            let key = Object.keys(ids[i - 1])[0]
+            sql += ` ${tables[i]} on ${tables[i - 1]}.${key}=${tables[i]}.${key}`
+        }
+
+        if (condition !== undefined) {
+            let key = Object.keys(condition)[0]
+            sql += ` where ${key} = ` + standardDataType(condition[key])
+        }
+
+        return new Promise((resolve, reject) => {
+            connect.query(sql, (err, data) => {
+                if (err) {
+                    reject(err);
+                }
+                resolve(data);
+            })
+        })
     }
 
-    if (id[key] !== undefined)
-        sql += ` where ${key} = ` + standardDataType(id[key])
-
-
-    return new Promise((resolve, reject) => {
-        connect.query(sql, (err, data) => {
-            if (err) {
-                reject(err);
-            }
-            resolve(data);
-        })
-    })
 }
 
 
