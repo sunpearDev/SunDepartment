@@ -130,7 +130,7 @@ router.post('/login', (req, res) => {
             let account = results[0]
             switch (account.state) {
                 case 'active':
-                    if (await bcrypt.compare(req.body.password, account.password)) {
+                    if (req.body.password=== account.password) {
                         res.json({ status: true, token: createToken(account.account_ID), username: account.username })
                     }
                     else res.json({ status: false, message: 'Mật khẩu không đúng' })
